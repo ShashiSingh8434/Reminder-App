@@ -26,6 +26,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
+import androidx.work.Data;
 import androidx.work.OneTimeWorkRequest;
 import androidx.work.WorkManager;
 import androidx.work.Worker;
@@ -38,7 +39,7 @@ import java.util.concurrent.TimeUnit;
 
 
 public class NewAlarm extends AppCompatActivity {
-    private MediaPlayer mediaPlayer;
+    private static MediaPlayer mediaPlayer;
     private static final String CHANNEL_ID = "YOUR_CHANNEL_ID";
     private static final int REQUEST_NOTIFICATION_PERMISSION = 1;
 
@@ -68,7 +69,6 @@ public class NewAlarm extends AppCompatActivity {
         mp3FileMap.put("Suzume", R.raw.suzume);
         mp3FileMap.put("Usseewa", R.raw.usseewa);
 
-
         // Spinner Setup
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, mp3Files);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -87,8 +87,8 @@ public class NewAlarm extends AppCompatActivity {
             editor.putString("selected_mp3", selectedMp3);
             editor.apply();
 
-//            Toast.makeText(this, "MP3 selection saved: " + selectedMp3, Toast.LENGTH_SHORT).show();
-            Toast.makeText(this, "Alarm set at the given time !!!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Alarm Set at the given time !!!", Toast.LENGTH_SHORT).show();
+
         });
 
         // Notification Channel
@@ -121,6 +121,7 @@ public class NewAlarm extends AppCompatActivity {
             timePickerDialog.show();
         });
     }
+
     private static final Map<String, Integer> MP3_FILE_MAP = Map.of(
             "Feel Good", R.raw.feelgood,
             "Freedom", R.raw.freedom,
@@ -153,14 +154,19 @@ public class NewAlarm extends AppCompatActivity {
         if (delay > 0) {
             OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(NotificationWorker.class)
                     .setInitialDelay(delay, TimeUnit.MILLISECONDS)
+                    .setInputData(new Data.Builder().putString("context", getApplicationContext().toString()).build())
+                    .addTag("alarm_tag")
                     .build();
             WorkManager.getInstance(this).enqueue(workRequest);
         } else {
             Toast.makeText(this, "Selected time is in the past!", Toast.LENGTH_SHORT).show();
         }
     }
+
     public static void showMediaNotification(Context context, String alarmTitleText, String alarmDetail, String selectedMp3) {
-        MediaPlayer mediaPlayer = new MediaPlayer();
+        if (mediaPlayer == null) {
+            mediaPlayer = new MediaPlayer();
+        }
 
         int resourceId = getResourceId(selectedMp3);
 
@@ -202,26 +208,38 @@ public class NewAlarm extends AppCompatActivity {
     private static int getResourceId(String selectedMp3File) {
         return MP3_FILE_MAP.getOrDefault(selectedMp3File, R.raw.feelgood);
     }
+
     public static class NotificationWorker extends Worker {
+        private Context context;
+
         public NotificationWorker(Context context, WorkerParameters workerParams) {
             super(context, workerParams);
+            this.context = context;  // Store the context
         }
 
         @NonNull
         @Override
         public Result doWork() {
-            SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences("AlarmPreferences", Context.MODE_PRIVATE);
+            SharedPreferences sharedPreferences = context.getSharedPreferences("AlarmPreferences", Context.MODE_PRIVATE);
             String alarmTitle = sharedPreferences.getString("alarm_title", "Default Title");
             String alarmDetail = sharedPreferences.getString("alarm_detail", "Default Detail");
             String selectedMp3 = sharedPreferences.getString("selected_mp3", "Feel Good");
 
-            showMediaNotification(getApplicationContext(), alarmTitle, alarmDetail, selectedMp3);
+            // Now you can call the static method
+            NewAlarm.showMediaNotification(context, alarmTitle, alarmDetail, selectedMp3);
+
             return Result.success();
         }
     }
+
+
+
     public class NotificationDismissReceiver extends BroadcastReceiver {
         @Override
         public void onReceive(Context context, Intent intent) {
+
+            WorkManager.getInstance(context).cancelAllWorkByTag("alarm_tag");
+
             // Cancel the notification when the user clicks on it
             NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
             notificationManager.cancel(1); // 1 is the notification ID
@@ -234,6 +252,7 @@ public class NewAlarm extends AppCompatActivity {
             }
         }
     }
+
 
     public class MediaReceiver extends BroadcastReceiver {
         @Override
