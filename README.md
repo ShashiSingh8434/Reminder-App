@@ -1,8 +1,8 @@
 # Alarm App
 ## Watch
-- ** AppTest folder
+- ** AppTest folder**
   It has all images of app at its each stage.
-- ** App Test Video
+- ** App Test Video **
   It is present in under main please do watch it,
 ## Features That Matter
 - **Intuitive Time Selection**  
