@@ -35,12 +35,15 @@
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
-
-        <!-- MediaReceiver to handle STOP_AUDIO action -->
         <receiver
             android:name=".NewAlarm$MediaReceiver"
             android:enabled="true"
             android:exported="true" />
+        <receiver
+            android:name=".NewAlarm$NotificationDismissReceiver"
+            android:enabled="true"
+            android:exported="true" />
+
 
     </application>
 

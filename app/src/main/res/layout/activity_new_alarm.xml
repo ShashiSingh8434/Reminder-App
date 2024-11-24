@@ -11,66 +11,77 @@
         android:id="@+id/timeTextView"
         android:layout_width="162dp"
         android:layout_height="100dp"
-        android:text="Select Time"
+        android:layout_marginTop="68dp"
+        android:gravity="center|top"
+        android:text="Selected Time"
         android:textSize="18sp"
-        app:layout_constraintBottom_toTopOf="@+id/alarmTitle"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.423"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintTop_toTopOf="parent" />
 
     <Button
         android:id="@+id/timePickerButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Set Alarm Time"
+        android:text="Set Time"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/timeTextView"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.787" />
 
     <EditText
         android:id="@+id/alarmTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
         android:ems="10"
-        android:hint="Alarm"
+        android:gravity="center"
+        android:hint="Alarm Title"
         android:inputType="text"
-        app:layout_constraintBottom_toTopOf="@+id/detail"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
+        app:layout_constraintHorizontal_bias="0.497"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/timeTextView"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintTop_toBottomOf="@+id/timeTextView" />
 
     <EditText
         android:id="@+id/detail"
         android:layout_width="209dp"
         android:layout_height="46dp"
+        android:layout_marginTop="56dp"
         android:ems="10"
-        android:hint="detail"
+        android:gravity="center"
+        android:hint="Detail"
         android:inputType="text"
-        app:layout_constraintBottom_toTopOf="@+id/timePickerButton"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/alarmTitle"
-        app:layout_constraintVertical_bias="0.5" />
+        app:layout_constraintTop_toBottomOf="@+id/alarmTitle" />
 
     <Button
         android:id="@+id/saveButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Button"
+        android:text="Save"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.5"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/timePickerButton"
         app:layout_constraintVertical_bias="0.5" />
+
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="206dp"
+        android:layout_height="36dp"
+        android:layout_marginTop="64dp"
+        android:spinnerMode="dialog"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.497"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/detail"
+        app:layout_constraintVertical_bias="0.036" />
 
     <!--    </LinearLayout>-->
 
