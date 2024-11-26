@@ -1,8 +1,8 @@
 # Alarm App
 ## Get APP
-- **Link**
-  https://drive.google.com/file/d/1MYf77Z9s6AHy__jSiuhX13XcZwLc06RG/view?usp=drivesdk
-
+- **Go to Get App Folder**
+  It has Apk file in it.
+  
 ## Watch
 - **AppTest folder**
   It has all images of app at its each stage.
