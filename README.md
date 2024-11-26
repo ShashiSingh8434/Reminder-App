@@ -1,8 +1,5 @@
 # Alarm App
-## Get APP
-- **Go to Get App Folder**
-  It has Apk file in it.
-  
+ 
 ## Watch
 - **AppTest folder**
   It has all images of app at its each stage.
