@@ -1,11 +1,12 @@
 package com.example.alarmappbyshashisingh;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
+import android.app.AlarmManager;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.TimePickerDialog;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,23 +21,15 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 import androidx.core.content.ContextCompat;
-import androidx.work.Data;
-import androidx.work.OneTimeWorkRequest;
-import androidx.work.WorkManager;
-import androidx.work.Worker;
-import androidx.work.WorkerParameters;
 
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
-
 
 public class NewAlarm extends AppCompatActivity {
     private static MediaPlayer mediaPlayer;
@@ -87,8 +80,7 @@ public class NewAlarm extends AppCompatActivity {
             editor.putString("selected_mp3", selectedMp3);
             editor.apply();
 
-            Toast.makeText(this, "Alarm Set at the given time !!!", Toast.LENGTH_SHORT).show();
-
+            Toast.makeText(this, "Alarm saved!", Toast.LENGTH_SHORT).show();
         });
 
         // Notification Channel
@@ -116,29 +108,17 @@ public class NewAlarm extends AppCompatActivity {
                         alarmTime.set(Calendar.HOUR_OF_DAY, selectedHour);
                         alarmTime.set(Calendar.MINUTE, selectedMinute);
                         alarmTime.set(Calendar.SECOND, 0);
-                        scheduleNotification(alarmTime.getTimeInMillis());
+                        scheduleAlarm(alarmTime.getTimeInMillis());
                     }, hour, minute, false);
             timePickerDialog.show();
         });
     }
 
-    private static final Map<String, Integer> MP3_FILE_MAP = Map.of(
-            "Feel Good", R.raw.feelgood,
-            "Freedom", R.raw.freedom,
-            "If It Shines", R.raw.ifitshines,
-            "Slow Paced", R.raw.aot1,
-            "Rumbling", R.raw.aot2,
-            "Readymade", R.raw.readymade,
-            "Rule", R.raw.rule,
-            "Suzume", R.raw.suzume,
-            "Usseewa", R.raw.usseewa
-    );
-
     private void createNotificationChannel() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             CharSequence name = "Scheduled Notification";
             String description = "Channel for alarm notifications";
-            int importance = NotificationManager.IMPORTANCE_DEFAULT;
+            int importance = NotificationManager.IMPORTANCE_HIGH;
             NotificationChannel channel = new NotificationChannel(CHANNEL_ID, name, importance);
             channel.setDescription(description);
 
@@ -149,21 +129,34 @@ public class NewAlarm extends AppCompatActivity {
         }
     }
 
-    public void scheduleNotification(long triggerTimeInMillis) {
-        long delay = triggerTimeInMillis - System.currentTimeMillis();
-        if (delay > 0) {
-            OneTimeWorkRequest workRequest = new OneTimeWorkRequest.Builder(NotificationWorker.class)
-                    .setInitialDelay(delay, TimeUnit.MILLISECONDS)
-                    .setInputData(new Data.Builder().putString("context", getApplicationContext().toString()).build())
-                    .addTag("alarm_tag")
-                    .build();
-            WorkManager.getInstance(this).enqueue(workRequest);
-        } else {
-            Toast.makeText(this, "Selected time is in the past!", Toast.LENGTH_SHORT).show();
+    private void scheduleAlarm(long triggerTimeInMillis) {
+        AlarmManager alarmManager = null;
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // Android 12+
+            alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+            if (!alarmManager.canScheduleExactAlarms()) {
+                // Open system settings for user to grant permission
+                Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM);
+                startActivity(intent);
+                Toast.makeText(this, "Please allow exact alarms for this app", Toast.LENGTH_LONG).show();
+            }
+        }
+
+
+        Intent intent = new Intent(this, AlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        if (alarmManager != null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, triggerTimeInMillis, pendingIntent);
+            } else {
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTimeInMillis, pendingIntent);
+            }
         }
     }
 
+    @SuppressLint("MissingPermission")
     public static void showMediaNotification(Context context, String alarmTitleText, String alarmDetail, String selectedMp3) {
+        // Initialize MediaPlayer if needed
         if (mediaPlayer == null) {
             mediaPlayer = new MediaPlayer();
         }
@@ -172,99 +165,62 @@ public class NewAlarm extends AppCompatActivity {
 
         try {
             if (!mediaPlayer.isPlaying()) {
-                mediaPlayer = MediaPlayer.create(context, resourceId); // Replace with your audio file
-                mediaPlayer.setLooping(true); // Optional: Make the audio loop
+                mediaPlayer = MediaPlayer.create(context, resourceId);
+                mediaPlayer.setLooping(true);
                 mediaPlayer.start();
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        // Intent to open the app when notification is clicked
+        Intent openAppIntent = new Intent(context, MainActivity.class); // Change to your home activity
+        openAppIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+        PendingIntent openAppPendingIntent = PendingIntent.getActivity(
+                context,
+                0,
+                openAppIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
         // Intent to stop the audio
         Intent stopIntent = new Intent(context, MediaReceiver.class);
         stopIntent.setAction("STOP_AUDIO");
-        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(context, 0, stopIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+        PendingIntent stopPendingIntent = PendingIntent.getBroadcast(
+                context,
+                0,
+                stopIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
-        // Intent to cancel the notification and stop the alarm
-        Intent dismissIntent = new Intent(context, NotificationDismissReceiver.class);
-        PendingIntent dismissPendingIntent = PendingIntent.getBroadcast(context, 0, dismissIntent, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-
-        // Create the notification
+        // Build the notification
         NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_background)
                 .setContentTitle(alarmTitleText)
                 .setContentText(alarmDetail)
-                .addAction(R.drawable.ic_notification, "Stop", stopPendingIntent) // Add a Stop button
-                .setContentIntent(dismissPendingIntent) // User clicks on the notification to dismiss it
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true);  // Automatically removes the notification when clicked
+                .setContentIntent(openAppPendingIntent) // Opens app on click
+                .addAction(R.drawable.ic_notification, "Stop", stopPendingIntent) // Stop button
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setOngoing(true); // Keeps it visible until user interacts
 
         // Show the notification
         NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-        notificationManager.notify(1, builder.build());
+        notificationManager.notify(0, builder.build());
     }
-
 
     private static int getResourceId(String selectedMp3File) {
-        return MP3_FILE_MAP.getOrDefault(selectedMp3File, R.raw.feelgood);
-    }
+        Map<String, Integer> mp3Map = new HashMap<>();
+        mp3Map.put("Feel Good", R.raw.feelgood);
+        mp3Map.put("Freedom", R.raw.freedom);
+        mp3Map.put("If It Shines", R.raw.ifitshines);
+        mp3Map.put("Slow Paced", R.raw.aot1);
+        mp3Map.put("Rumbling", R.raw.aot2);
+        mp3Map.put("Readymade", R.raw.readymade);
+        mp3Map.put("Rule", R.raw.rule);
+        mp3Map.put("Suzume", R.raw.suzume);
+        mp3Map.put("Usseewa", R.raw.usseewa);
 
-    public static class NotificationWorker extends Worker {
-        private Context context;
-
-        public NotificationWorker(Context context, WorkerParameters workerParams) {
-            super(context, workerParams);
-            this.context = context;  // Store the context
-        }
-
-        @NonNull
-        @Override
-        public Result doWork() {
-            SharedPreferences sharedPreferences = context.getSharedPreferences("AlarmPreferences", Context.MODE_PRIVATE);
-            String alarmTitle = sharedPreferences.getString("alarm_title", "Default Title");
-            String alarmDetail = sharedPreferences.getString("alarm_detail", "Default Detail");
-            String selectedMp3 = sharedPreferences.getString("selected_mp3", "Feel Good");
-
-            // Now you can call the static method
-            NewAlarm.showMediaNotification(context, alarmTitle, alarmDetail, selectedMp3);
-
-            return Result.success();
-        }
-    }
-
-
-
-    public class NotificationDismissReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-
-            WorkManager.getInstance(context).cancelAllWorkByTag("alarm_tag");
-
-            // Cancel the notification when the user clicks on it
-            NotificationManagerCompat notificationManager = NotificationManagerCompat.from(context);
-            notificationManager.cancel(1); // 1 is the notification ID
-
-            // Stop the audio playback
-            if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                mediaPlayer.stop();   // Stop the audio
-                mediaPlayer.release(); // Release resources
-                mediaPlayer = null;    // Nullify the reference to avoid memory leaks
-            }
-        }
-    }
-
-
-    public class MediaReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            if ("STOP_AUDIO".equals(intent.getAction())) {
-                if (mediaPlayer != null && mediaPlayer.isPlaying()) {
-                    mediaPlayer.stop();    // Stop the playback
-                    mediaPlayer.release(); // Release resources
-                    mediaPlayer = null;    // Nullify the reference to avoid memory leaks
-                    Toast.makeText(context, "Audio Stopped", Toast.LENGTH_SHORT).show();
-                }
-            }
-        }
+        return mp3Map.getOrDefault(selectedMp3File, R.raw.feelgood);
     }
 }

@@ -2,8 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" /> <!-- Permission for notifications -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" /> <!-- Permission to receive BOOT_COMPLETED -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
 
     <application
         android:allowBackup="true"
@@ -16,35 +17,30 @@
         android:theme="@style/Theme.AlarmApp"
         tools:targetApi="31">
 
-        <!-- Main Activity -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
+        </activity>
+
         <activity
             android:name=".NewAlarm"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
-        <!-- Receiver for Boot Completed -->
+        <!-- Alarm Receiver -->
         <receiver
-            android:name=".NewAlarm"
-            android:enabled="true"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED" />
-            </intent-filter>
-        </receiver>
-        <receiver
-            android:name=".NewAlarm$MediaReceiver"
-            android:enabled="true"
+            android:name=".AlarmReceiver"
             android:exported="true" />
+        <!-- Stop Button -->
         <receiver
-            android:name=".NewAlarm$NotificationDismissReceiver"
-            android:enabled="true"
+            android:name=".MediaReceiver"
             android:exported="true" />
-
-
     </application>
 
 </manifest>
