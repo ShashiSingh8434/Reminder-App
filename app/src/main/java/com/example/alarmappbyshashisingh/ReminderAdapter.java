@@ -8,28 +8,36 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
-public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHolder> {
+public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ReminderViewHolder> {
 
-    private final List<Reminder> reminderList;
+    private List<Reminder> reminderList;
 
-    public ReminderAdapter(List<Reminder> reminders) {
-        this.reminderList = reminders;
+    public ReminderAdapter(List<Reminder> reminderList) {
+        this.reminderList = reminderList;
     }
 
     @NonNull
     @Override
-    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public ReminderViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View view = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.reminder_item, parent, false);
-        return new ViewHolder(view);
+        return new ReminderViewHolder(view);
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull ReminderViewHolder holder, int position) {
         Reminder reminder = reminderList.get(position);
         holder.titleText.setText(reminder.title);
         holder.detailText.setText(reminder.detail);
         holder.timeText.setText(reminder.time);
+
+        // Optional: show mp3 file name if available
+        if (reminder.mp3File != null && !reminder.mp3File.isEmpty()) {
+            holder.mp3Text.setVisibility(View.VISIBLE);
+            holder.mp3Text.setText("Tone: " + reminder.mp3File);
+        } else {
+            holder.mp3Text.setVisibility(View.GONE);
+        }
     }
 
     @Override
@@ -37,14 +45,22 @@ public class ReminderAdapter extends RecyclerView.Adapter<ReminderAdapter.ViewHo
         return reminderList.size();
     }
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        TextView titleText, detailText, timeText;
+    public void removeItem(int position) {
+        reminderList.remove(position);
+        notifyItemRemoved(position);
+    }
 
-        public ViewHolder(@NonNull View itemView) {
+    static class ReminderViewHolder extends RecyclerView.ViewHolder {
+        TextView titleText, detailText, timeText, mp3Text;
+
+        ReminderViewHolder(@NonNull View itemView) {
             super(itemView);
             titleText = itemView.findViewById(R.id.titleText);
             detailText = itemView.findViewById(R.id.detailText);
             timeText = itemView.findViewById(R.id.timeText);
+
+            // Add a TextView in XML for mp3 display (optional)
+            mp3Text = itemView.findViewById(R.id.mp3Text);
         }
     }
 }

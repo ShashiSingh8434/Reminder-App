@@ -22,4 +22,13 @@
         android:textSize="14sp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content" />
+
+    <!-- Optional: for displaying chosen MP3 file -->
+    <TextView
+        android:id="@+id/mp3Text"
+        android:textSize="12sp"
+        android:textColor="#666"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone" />
 </LinearLayout>

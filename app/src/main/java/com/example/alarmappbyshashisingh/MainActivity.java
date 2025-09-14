@@ -3,12 +3,11 @@ package com.example.alarmappbyshashisingh;
 import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
-
-import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Executors;
 
@@ -17,42 +16,42 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ReminderAdapter adapter;
     private List<Reminder> reminderList;
-    private Button addBtn;
+    private Button addReminderButton;
+    private ReminderDatabase db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // Enable edge-to-edge display
-        EdgeToEdge.enable(this);
-
         setContentView(R.layout.activity_main);
 
-        // Initialize views
         recyclerView = findViewById(R.id.recyclerView);
-        addBtn = findViewById(R.id.addBtn);
+        addReminderButton = findViewById(R.id.addBtn);
 
-        // Set RecyclerView layout manager
+        reminderList = new ArrayList<>();
+        adapter = new ReminderAdapter(reminderList);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
 
-        // Load reminders from database
-        loadReminders();
+        db = ReminderDatabase.getInstance(this);
 
-        // Set click listener for Add button
-        addBtn.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, NewAlarm.class);
-            startActivity(intent);
+        // Fetch reminders in background
+        loadRemindersFromDb();
+
+        // Navigate to NewAlarm activity
+        addReminderButton.setOnClickListener(v -> {
+            startActivity(new Intent(MainActivity.this, NewAlarm.class));
         });
     }
 
-    // Method to load reminders from database
-    private void loadReminders() {
-        Executors.newSingleThreadExecutor().submit(() -> {
-            final List<Reminder> list = ReminderDatabase.getInstance(this).reminderDao().getAllReminders();
+    private void loadRemindersFromDb() {
+        Executors.newSingleThreadExecutor().execute(() -> {
+            List<Reminder> reminders = db.reminderDao().getAllReminders();
+
+            // Update UI on main thread
             runOnUiThread(() -> {
-                reminderList = list;
-                adapter = new ReminderAdapter(reminderList);
-                recyclerView.setAdapter(adapter);
+                reminderList.clear();
+                reminderList.addAll(reminders);
+                adapter.notifyDataSetChanged();
             });
         });
     }
@@ -60,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
-        // Reload reminders in case new ones were added
-        loadReminders();
+        // Refresh reminders whenever we return to MainActivity
+        loadRemindersFromDb();
     }
 }
