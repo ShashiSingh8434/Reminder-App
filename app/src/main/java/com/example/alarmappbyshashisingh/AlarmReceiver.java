@@ -73,6 +73,9 @@ public class AlarmReceiver extends BroadcastReceiver {
                     == PackageManager.PERMISSION_GRANTED) {
                 NotificationManagerCompat.from(context).notify(reminderId, builder.build());
             }
+
+            dao.updateEnabled(reminderId, false);
+
         });
     }
 }

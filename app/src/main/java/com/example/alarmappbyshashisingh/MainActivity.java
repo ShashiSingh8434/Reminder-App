@@ -4,8 +4,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.widget.Button;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +19,7 @@ public class MainActivity extends AppCompatActivity {
     private RecyclerView recyclerView;
     private ReminderAdapter adapter;
     private List<Reminder> reminderList;
-    private Button addReminderButton;
+    private Button nightModeBtn;
     private ReminderDatabase db;
 
     @Override
@@ -25,7 +28,8 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         recyclerView = findViewById(R.id.recyclerView);
-        addReminderButton = findViewById(R.id.addBtn);
+        FloatingActionButton addBtn = findViewById(R.id.addBtn);
+
 
         reminderList = new ArrayList<>();
         adapter = new ReminderAdapter(reminderList);
@@ -38,8 +42,19 @@ public class MainActivity extends AppCompatActivity {
         loadRemindersFromDb();
 
         // Navigate to NewAlarm activity
-        addReminderButton.setOnClickListener(v -> {
+        addBtn.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity.this, NewAlarm.class));
+        });
+
+        nightModeBtn = findViewById(R.id.nightModeBtn);
+
+        nightModeBtn.setOnClickListener(v -> {
+            int currentMode = AppCompatDelegate.getDefaultNightMode();
+            if (currentMode == AppCompatDelegate.MODE_NIGHT_YES) {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            } else {
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            }
         });
     }
 
