@@ -32,9 +32,9 @@ A fully functional **Reminder App** for Android, built with **Java** and **Andro
 https://github.com/user-attachments/assets/1b9c1977-b789-41ea-aa12-e04f4d7ce1c7
 
 
-<img width="600" alt="a" src="https://github.com/user-attachments/assets/103ef11a-a88a-4ae1-82bc-c69cf1cf4603" />
-<img width="600" alt="b" src="https://github.com/user-attachments/assets/5377e22d-7e4b-428e-8491-7243e57dc356" />
-<img width="600" alt="c" src="https://github.com/user-attachments/assets/2a99ddf8-f85e-420e-b470-d261119edfd3" />
+<img width="350" alt="a" src="https://github.com/user-attachments/assets/103ef11a-a88a-4ae1-82bc-c69cf1cf4603" />
+<img width="350" alt="b" src="https://github.com/user-attachments/assets/5377e22d-7e4b-428e-8491-7243e57dc356" />
+<img width="350" alt="c" src="https://github.com/user-attachments/assets/2a99ddf8-f85e-420e-b470-d261119edfd3" />
 
 
 ---
